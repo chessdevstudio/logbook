@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carnet de vol — A. Barthélémy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #F4F7F5;
+    --paper: #FFFFFF;
+    --paper-soft: #FBFCFB;
+    --ink: #35414A;
+    --ink-soft: #6E7C86;
+    --ink-faint: #9AA7AE;
+    --line: #E4E9E6;
+
+    --sky: #C4DEEC;
+    --sky-deep: #8FB8D6;
+    --sage: #C7DEC4;
+    --sage-deep: #93B98D;
+    --lavender: #DAD3EA;
+    --lavender-deep: #AB9BCB;
+    --peach: #F2DCC7;
+    --peach-deep: #DDA875;
+
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 1px 2px rgba(53,65,74,0.04), 0 8px 24px -12px rgba(53,65,74,0.14);
+    --shadow-sm: 0 1px 3px rgba(53,65,74,0.08);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  ::selection{background:var(--sky); color:var(--ink);}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  a{color:inherit;}
+  h1,h2,h3{font-family:'Fraunces',serif; margin:0; font-weight:600; letter-spacing:-0.01em;}
+  .num{font-family:'IBM Plex Mono',monospace;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--sage-deep);
+    font-weight:600;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{content:""; width:18px; height:1.5px; background:var(--sage-deep); display:inline-block;}
+
+  button{font-family:'Inter',sans-serif; cursor:pointer;}
+  input,select,textarea{font-family:'Inter',sans-serif;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:56px 0 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap;
+  }
+  .hero h1{
+    font-size:clamp(32px, 4.6vw, 50px);
+    line-height:1.05;
+    margin-top:10px;
+    max-width:640px;
+  }
+  .hero h1 em{font-style:italic; color:var(--sky-deep); font-weight:500;}
+  .hero p.lede{
+    color:var(--ink-soft);
+    font-size:16px;
+    max-width:480px;
+    margin-top:14px;
+  }
+  .hero-total{
+    background:var(--paper);
+    border-radius:var(--radius-lg);
+    padding:22px 28px;
+    box-shadow:var(--shadow);
+    text-align:right;
+    min-width:220px;
+  }
+  .hero-total .n{
+    font-size:44px;
+    font-weight:600;
+    color:var(--ink);
+    line-height:1;
+  }
+  .hero-total .n span{font-size:20px; color:var(--ink-faint); font-weight:500;}
+  .hero-total .lab{
+    font-size:12.5px; color:var(--ink-soft); margin-top:8px; letter-spacing:0.02em;
+  }
+
+  /* horizon signature */
+  .horizon{
+    margin-top:44px;
+    background:var(--paper);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    padding:26px 28px 20px;
+  }
+  .horizon-head{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; flex-wrap:wrap; gap:8px;
+  }
+  .horizon-head h3{font-size:16px; font-weight:600;}
+  .horizon-head span{font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace;}
+  #horizonSvg{width:100%; height:auto; display:block;}
+  .horizon-legend{
+    display:flex; gap:22px; margin-top:6px; flex-wrap:wrap;
+  }
+  .horizon-legend div{font-size:12px; color:var(--ink-soft); display:flex; align-items:center; gap:6px;}
+  .horizon-legend .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+  /* ---------- STATS ---------- */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin:36px 0;
+  }
+  .stat-card{
+    background:var(--paper);
+    border-radius:var(--radius-md);
+    padding:20px 20px;
+    box-shadow:var(--shadow-sm);
+    border-top:3px solid var(--card-accent, var(--sky-deep));
+  }
+  .stat-card .v{font-size:28px; font-weight:600; font-family:'IBM Plex Mono',monospace; letter-spacing:-0.02em;}
+  .stat-card .l{font-size:12.5px; color:var(--ink-soft); margin-top:6px;}
+
+  /* ---------- SECTION HEADERS ---------- */
+  .section-head{
+    display:flex; justify-content:space-between; align-items:flex-end; margin:52px 0 18px; gap:16px; flex-wrap:wrap;
+  }
+  .section-head h2{font-size:24px;}
+  .section-head p{color:var(--ink-soft); font-size:14px; margin-top:6px; max-width:520px;}
+
+  /* ---------- CHARTS ---------- */
+  .charts{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:16px;
+  }
+  .charts .chart-card:nth-child(3){grid-column:1 / -1;}
+  .chart-card{
+    background:var(--paper);
+    border-radius:var(--radius-lg);
+    padding:22px 24px 18px;
+    box-shadow:var(--shadow-sm);
+  }
+  .chart-card h3{font-size:15.5px; font-weight:600;}
+  .chart-card .sub{font-size:12.5px; color:var(--ink-faint); margin-top:3px; margin-bottom:14px;}
+  .chart-card canvas{max-height:260px;}
+  .donut-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .donut-wrap{display:flex; align-items:center; gap:18px;}
+  .donut-wrap canvas{width:120px !important; height:120px !important; flex:none;}
+  .donut-legend{flex:1; display:flex; flex-direction:column; gap:8px; min-width:0;}
+  .donut-legend-title{font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); font-weight:600; margin-bottom:2px;}
+  .donut-legend .row{display:flex; justify-content:space-between; font-size:13px; align-items:center; gap:10px;}
+  .donut-legend .row .lbl{display:flex; align-items:center; gap:8px; color:var(--ink); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .donut-legend .swatch{width:9px;height:9px;border-radius:50%;flex:none;}
+  .donut-legend .val{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); flex:none;}
+
+  /* ---------- TOOLBAR ---------- */
+  .toolbar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    background:var(--paper);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    box-shadow:var(--shadow-sm);
+    margin-bottom:16px;
+  }
+  .toolbar select, .toolbar input[type=text]{
+    border:1px solid var(--line);
+    background:var(--paper-soft);
+    border-radius:var(--radius-sm);
+    padding:9px 12px;
+    font-size:13.5px;
+    color:var(--ink);
+    outline:none;
+  }
+  .toolbar select:focus, .toolbar input:focus{border-color:var(--sky-deep);}
+  .toolbar input[type=text]{flex:1; min-width:160px;}
+  .toolbar .count{font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; white-space:nowrap;}
+  .btn{
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:10px 16px;
+    font-size:13.5px;
+    font-weight:600;
+    display:inline-flex; align-items:center; gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--ink); color:#fff;}
+  .btn-primary:hover{box-shadow:0 6px 16px -6px rgba(53,65,74,0.5);}
+  .btn-ghost{background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--ink-faint); color:var(--ink);}
+  .btn-sm{padding:6px 10px; font-size:12px; border-radius:8px;}
+
+  /* ---------- TABLE ---------- */
+  .table-card{
+    background:var(--paper);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-sm);
+    overflow:hidden;
+  }
+  .table-scroll{overflow-x:auto;}
+  table{border-collapse:collapse; width:100%; min-width:1100px;}
+  thead th{
+    text-align:left;
+    font-size:11px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-weight:600;
+    padding:14px 14px;
+    border-bottom:1px solid var(--line);
+    background:var(--paper-soft);
+    position:sticky; top:0;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:12px 14px;
+    font-size:13.5px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    color:var(--ink);
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--paper-soft);}
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:600;
+    padding:3px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .tag-multiaxe{background:var(--sky); color:#274a63;}
+  .tag-ulm{background:var(--sage); color:#2f5230;}
+  .tag-avion{background:var(--lavender); color:#493a6b;}
+  .tag-autre{background:var(--peach); color:#7a4a1e;}
+  .fn{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--ink-soft);}
+  .muted{color:var(--ink-faint);}
+  .remarque-cell{max-width:220px; white-space:normal; color:var(--ink-soft); font-size:13px;}
+  .row-actions{display:flex; gap:6px; white-space:nowrap;}
+  .icon-btn{
+    border:1px solid var(--line); background:var(--paper-soft); border-radius:8px;
+    width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+    color:var(--ink-soft); font-size:13px;
+  }
+  .icon-btn:hover{border-color:var(--ink-faint); color:var(--ink);}
+  .empty-row td{text-align:center; padding:48px 14px; color:var(--ink-faint); font-size:14px;}
+
+  /* ---------- FORM PANEL ---------- */
+  .form-panel{
+    background:var(--paper);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);
+    padding:26px 28px 22px;
+    margin-bottom:16px;
+    display:none;
+  }
+  .form-panel.open{display:block;}
+  .form-panel h3{font-size:18px; margin-bottom:4px;}
+  .form-panel .sub{color:var(--ink-soft); font-size:13.5px; margin-bottom:20px;}
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px 16px;
+  }
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field.span2{grid-column:span 2;}
+  .field.span4{grid-column:span 4;}
+  .field label{font-size:12px; font-weight:600; color:var(--ink-soft);}
+  .field input, .field select, .field textarea{
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+    font-size:13.5px;
+    color:var(--ink);
+    background:var(--paper-soft);
+    outline:none;
+    width:100%;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--sky-deep); background:#fff;}
+  .field textarea{resize:vertical; min-height:40px; font-family:'Inter',sans-serif;}
+  .radio-group{display:flex; gap:8px;}
+  .radio-opt{
+    flex:1; text-align:center; border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:9px 8px; font-size:12.5px; font-weight:600; color:var(--ink-soft); background:var(--paper-soft);
+  }
+  .radio-opt input{display:none;}
+  .radio-opt.active{border-color:var(--sky-deep); background:var(--sky); color:#274a63;}
+  .form-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+
+  /* ---------- TOAST ---------- */
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#fff; padding:12px 20px; border-radius:30px;
+    font-size:13.5px; box-shadow:0 10px 30px -8px rgba(0,0,0,0.35);
+    opacity:0; pointer-events:none; transition:all .25s ease; z-index:50;
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .dot{width:7px; height:7px; border-radius:50%; background:var(--sage-deep);}
+
+  footer{
+    text-align:center; padding:50px 20px 40px; color:var(--ink-faint); font-size:12.5px;
+  }
+
+  @media (max-width: 880px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .charts{grid-template-columns:1fr;}
+    .donut-grid{grid-template-columns:1fr;}
+    .charts .chart-card:nth-child(3){grid-column:auto;}
+    .form-grid{grid-template-columns:repeat(2,1fr);}
+    .field.span2, .field.span4{grid-column:span 2;}
+    .hero-total{text-align:left;}
+  }
+  @media (max-width: 560px){
+    .wrap{padding:0 16px;}
+    .stats{grid-template-columns:1fr 1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .field.span2, .field.span4{grid-column:span 1;}
+    thead th, tbody td{padding:10px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">Carnet de vol numérique</div>
+        <h1>Chaque vol laisse<br><em>une trace</em>, du premier<br>lâcher solo au dernier.</h1>
+        <p class="lede">Le carnet de vol ULM &amp; avion léger d'A. Barthélémy — importé depuis son classeur Excel, tenu à jour ici.</p>
+      </div>
+      <div class="hero-total">
+        <div class="n" id="heroTotalHours">—<span>h</span></div>
+        <div class="lab" id="heroTotalSub">heures de vol enregistrées</div>
+      </div>
+    </div>
+
+    <div class="horizon">
+      <div class="horizon-head">
+        <h3>La ligne d'horizon — activité depuis 2010</h3>
+        <span id="horizonRange"></span>
+      </div>
+      <svg id="horizonSvg" viewBox="0 0 1000 180" preserveAspectRatio="none"></svg>
+      <div class="horizon-legend">
+        <div><span class="dot" style="background:var(--sky-deep)"></span> hauteur du repère = heures volées dans l'année</div>
+        <div><span class="dot" style="background:var(--ink-faint)"></span> ligne plate = année sans vol</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STATS ================= -->
+  <div class="stats" id="statsRow"></div>
+
+  <!-- ================= CHARTS ================= -->
+  <div class="section-head">
+    <div>
+      <h2>L'activité, année après année</h2>
+      <p>Heures cumulées par saison, progression du total au fil du temps, et répartition des vols.</p>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chart-card">
+      <h3>Heures de vol par année</h3>
+      <div class="sub">Double commande (formation) et solo / commandant de bord</div>
+      <canvas id="chartYears"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Progression cumulée</h3>
+      <div class="sub">Total d'heures accumulées depuis le premier vol</div>
+      <canvas id="chartCumul"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Répartition de l'activité</h3>
+      <div class="sub">Par catégorie de machine et par fonction à bord</div>
+      <div class="donut-grid">
+        <div class="donut-wrap">
+          <canvas id="chartCategorie"></canvas>
+          <div class="donut-legend">
+            <div class="donut-legend-title">Catégorie</div>
+            <div id="categorieLegend"></div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="chartFonction"></canvas>
+          <div class="donut-legend">
+            <div class="donut-legend-title">Fonction à bord</div>
+            <div id="fonctionLegend"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LOGBOOK ================= -->
+  <div class="section-head">
+    <div>
+      <h2>Le carnet</h2>
+      <p>Tous les vols enregistrés, avec machine, instructeur, terrain et remarques.</p>
+    </div>
+    <button class="btn btn-primary" id="toggleFormBtn">+ Ajouter un vol</button>
+  </div>
+
+  <div class="form-panel" id="formPanel">
+    <h3 id="formTitle">Ajouter un vol</h3>
+    <div class="sub">Renseignez les informations comme dans le carnet papier — un seul champ de temps est nécessaire, en double commande ou en solo.</div>
+    <form id="flightForm">
+      <div class="form-grid">
+        <div class="field">
+          <label>Date *</label>
+          <input type="date" id="f_date" required>
+        </div>
+        <div class="field">
+          <label>Catégorie *</label>
+          <input type="text" id="f_categorie" list="dl_categorie" placeholder="ULM, avion…" required>
+          <datalist id="dl_categorie"></datalist>
+        </div>
+        <div class="field">
+          <label>Modèle</label>
+          <input type="text" id="f_modele" list="dl_modele" placeholder="Fk9, DR400…">
+          <datalist id="dl_modele"></datalist>
+        </div>
+        <div class="field">
+          <label>Immatriculation</label>
+          <input type="text" id="f_immat" placeholder="31LV">
+        </div>
+
+        <div class="field">
+          <label>Fonction à bord</label>
+          <input type="text" id="f_fonction" list="dl_fonction" placeholder="EP, SOLO, CDB…">
+          <datalist id="dl_fonction"></datalist>
+        </div>
+        <div class="field">
+          <label>Instructeur</label>
+          <input type="text" id="f_instructeur" list="dl_instructeur" placeholder="si double commande">
+          <datalist id="dl_instructeur"></datalist>
+        </div>
+        <div class="field span2">
+          <label>Terrain(s) / itinéraire</label>
+          <input type="text" id="f_lieu" list="dl_lieu" placeholder="LFCL, St Lieux — Baraigne…">
+          <datalist id="dl_lieu"></datalist>
+        </div>
+
+        <div class="field span2">
+          <label>Temps compté en</label>
+          <div class="radio-group" id="tempsType">
+            <label class="radio-opt active" data-val="dc"><input type="radio" name="tempsType" value="dc" checked>Double commande</label>
+            <label class="radio-opt" data-val="cdb"><input type="radio" name="tempsType" value="cdb">Solo / CdB</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Durée — heures</label>
+          <input type="number" id="f_heures" min="0" max="20" step="1" placeholder="0">
+        </div>
+        <div class="field">
+          <label>Durée — minutes</label>
+          <input type="number" id="f_minutes" min="0" max="59" step="1" placeholder="0">
+        </div>
+
+        <div class="field">
+          <label>Prix (€)</label>
+          <input type="number" id="f_prix" min="0" step="0.1" placeholder="facultatif">
+        </div>
+        <div class="field span4">
+          <label>Remarques, observations</label>
+          <textarea id="f_remarques" placeholder="Navigation, lâcher solo, conditions particulières…"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="cancelFormBtn">Annuler</button>
+        <button type="submit" class="btn btn-primary" id="submitFormBtn">Enregistrer le vol</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toolbar">
+    <select id="filterYear"><option value="">Toutes les années</option></select>
+    <select id="filterCategorie"><option value="">Toutes catégories</option></select>
+    <input type="text" id="filterSearch" placeholder="Rechercher un terrain, un instructeur, une remarque…">
+    <span class="count" id="filterCount"></span>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Catégorie</th>
+            <th>Modèle</th>
+            <th>Immat.</th>
+            <th>Fonction</th>
+            <th>Instructeur</th>
+            <th>Terrain</th>
+            <th>DC</th>
+            <th>CdB</th>
+            <th>Total</th>
+            <th>Prix</th>
+            <th>Remarques</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="flightsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Carnet de vol personnel — données stockées dans votre navigateur. Importé à l'origine depuis un classeur Excel.
+  </footer>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+<script id="seed-data" type="application/json">[{"id": 1, "date": "2010-05-16", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 60, "cdb": null, "prix": null, "remarques": "Début de formation multiaxe"}, {"id": 2, "date": "2010-05-25", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 36, "cdb": null, "prix": null, "remarques": null}, {"id": 3, "date": "2010-06-12", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 66, "cdb": null, "prix": null, "remarques": null}, {"id": 4, "date": "2010-06-23", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 42, "cdb": null, "prix": null, "remarques": null}, {"id": 5, "date": "2010-06-29", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 54, "cdb": null, "prix": null, "remarques": null}, {"id": 6, "date": "2010-08-08", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 192, "cdb": null, "prix": null, "remarques": "NAV Villefranche de Pannat"}, {"id": 7, "date": "2010-08-12", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 42, "cdb": null, "prix": null, "remarques": null}, {"id": 8, "date": "2010-08-18", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 60, "cdb": null, "prix": null, "remarques": null}, {"id": 9, "date": "2010-08-25", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 66, "cdb": null, "prix": null, "remarques": null}, {"id": 10, "date": "2010-08-29", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 102, "cdb": null, "prix": null, "remarques": null}, {"id": 11, "date": "2010-09-29", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 30, "cdb": null, "prix": null, "remarques": null}, {"id": 12, "date": "2010-10-27", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 108, "cdb": null, "prix": null, "remarques": "Nav Aleu"}, {"id": 13, "date": "2010-11-13", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 96, "cdb": null, "prix": null, "remarques": null}, {"id": 14, "date": "2010-11-24", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 84, "cdb": null, "prix": null, "remarques": null}, {"id": 15, "date": "2011-02-06", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 118, "cdb": null, "prix": null, "remarques": null}, {"id": 16, "date": "2011-02-08", "categorie": "avion", "modele": "C152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 45, "cdb": null, "prix": null, "remarques": "Début de formation PPL"}, {"id": 17, "date": "2011-02-16", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 66, "cdb": null, "prix": null, "remarques": null}, {"id": 18, "date": "2011-02-28", "categorie": "avion", "modele": "C152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 60, "cdb": null, "prix": null, "remarques": null}, {"id": 19, "date": "2011-03-05", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 120, "cdb": null, "prix": null, "remarques": null}, {"id": 20, "date": "2011-03-21", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 64, "cdb": null, "prix": null, "remarques": null}, {"id": 21, "date": "2011-03-26", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR - LFDH", "dc": 108, "cdb": null, "prix": null, "remarques": "Nav Auch"}, {"id": 22, "date": "2011-04-02", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 36, "cdb": null, "prix": null, "remarques": null}, {"id": 23, "date": "2011-04-05", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR - LFCG", "dc": 51, "cdb": null, "prix": null, "remarques": "Nav Saint Girons Antichan"}, {"id": 24, "date": "2011-04-18", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 75, "cdb": null, "prix": null, "remarques": null}, {"id": 25, "date": "2011-04-20", "categorie": "multiaxe", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 34, "cdb": null, "prix": null, "remarques": null}, {"id": 26, "date": "2011-04-21", "categorie": "avion", "modele": "DR 480", "immat": "F-GOVS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 98, "cdb": null, "prix": null, "remarques": null}, {"id": 27, "date": "2011-04-29", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 118, "cdb": null, "prix": null, "remarques": null}, {"id": 28, "date": "2011-05-05", "categorie": "avion", "modele": "DR 480", "immat": "F-GOVS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 110, "cdb": null, "prix": null, "remarques": "Nav L'Isle en Dodon - Pic du Midi"}, {"id": 29, "date": "2011-05-06", "categorie": "avion", "modele": "DR 480", "immat": "F-GOVS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR - LFBA - LFDH", "dc": 107, "cdb": null, "prix": null, "remarques": "Nav Agen, Auch"}, {"id": 30, "date": "2011-05-11", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 60, "cdb": null, "prix": null, "remarques": null}, {"id": 31, "date": "2011-05-25", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 35, "cdb": null, "prix": null, "remarques": null}, {"id": 32, "date": "2011-06-12", "categorie": "avion", "modele": "DR 480", "immat": "F-GOVS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 34, "cdb": null, "prix": null, "remarques": null}, {"id": 33, "date": "2011-06-22", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 36, "cdb": null, "prix": null, "remarques": null}, {"id": 34, "date": "2011-06-27", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR - LFMK", "dc": 75, "cdb": null, "prix": null, "remarques": "Nav Carcasssonne"}, {"id": 35, "date": "2011-07-03", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 35, "cdb": null, "prix": null, "remarques": null}, {"id": 36, "date": "2011-07-14", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR - LFDJ", "dc": 100, "cdb": null, "prix": null, "remarques": "Nav Muret // Pic du Midi // Pamiers"}, {"id": 37, "date": "2011-07-16", "categorie": "multiaxe", "modele": "Fk9", "immat": "31QW", "fonction": "EP", "instructeur": "Michel DURAND", "lieu": "LFBR", "dc": 40, "cdb": null, "prix": null, "remarques": "Bilan de compétences"}, {"id": 38, "date": "2011-07-20", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR - LFMW", "dc": 30, "cdb": null, "prix": null, "remarques": "Nav Muret - Castelnaudary"}, {"id": 39, "date": "2011-07-20", "categorie": "avion", "modele": "DR 440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFIR - LFBR", "dc": 25, "cdb": null, "prix": null, "remarques": "Nav Revel - Muret"}, {"id": 40, "date": "2011-09-01", "categorie": "avion", "modele": "DR440", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 36, "cdb": null, "prix": null, "remarques": null}, {"id": 41, "date": "2011-09-02", "categorie": "avion", "modele": "DR", "immat": "F-GMXS", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 46, "cdb": null, "prix": null, "remarques": null}, {"id": 42, "date": "2011-09-11", "categorie": "multiaxe", "modele": "Fk9", "immat": "31LV", "fonction": "EP", "instructeur": "Bruno GEHU", "lieu": "LFBR", "dc": 102, "cdb": null, "prix": null, "remarques": "Nav Pic du Midi // Arrêt formation multiaxe"}, {"id": 43, "date": "2012-07-07", "categorie": "avion", "modele": "C-150", "immat": "F-BPEX", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 55, "cdb": null, "prix": null, "remarques": "Reprise PPL (travaux maison)"}, {"id": 44, "date": "2012-07-13", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 50, "cdb": null, "prix": null, "remarques": null}, {"id": 45, "date": "2012-07-14", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 70, "cdb": null, "prix": null, "remarques": null}, {"id": 46, "date": "2012-07-19", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 33, "cdb": null, "prix": null, "remarques": null}, {"id": 47, "date": "2012-07-24", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 55, "cdb": null, "prix": null, "remarques": null}, {"id": 48, "date": "2012-08-04", "categorie": "avion", "modele": "DR-480", "immat": "F-GOVS", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 85, "cdb": null, "prix": null, "remarques": "Nav Pic du Midi"}, {"id": 49, "date": "2012-08-07", "categorie": "avion", "modele": "DR-440", "immat": "F-GEKD", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 25, "cdb": null, "prix": null, "remarques": null}, {"id": 50, "date": "2012-08-10", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 35, "cdb": null, "prix": null, "remarques": null}, {"id": 51, "date": "2012-08-17", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 45, "cdb": null, "prix": null, "remarques": null}, {"id": 52, "date": "2012-08-28", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 36, "cdb": null, "prix": null, "remarques": null}, {"id": 53, "date": "2012-09-08", "categorie": "avion", "modele": "C-150", "immat": "F-BPEX", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 35, "cdb": null, "prix": null, "remarques": null}, {"id": 54, "date": "2012-10-03", "categorie": "avion", "modele": "DR-440", "immat": "F-GEKD", "fonction": "EP", "instructeur": "Gérard FEVRIER", "lieu": "LFBR", "dc": 70, "cdb": null, "prix": null, "remarques": "Nav Mont Valier"}, {"id": 55, "date": "2012-10-11", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 35, "cdb": null, "prix": null, "remarques": null}, {"id": 56, "date": "2012-10-15", "categorie": "avion", "modele": "C-152", "immat": "F-GOSN", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR - LFDH", "dc": 68, "cdb": null, "prix": null, "remarques": "Nav Auch"}, {"id": 57, "date": "2012-10-23", "categorie": "avion", "modele": "DR-400", "immat": "F-GEKD", "fonction": "EP", "instructeur": "Jean-Pierre MINGUEZ", "lieu": "LFBR", "dc": 29, "cdb": null, "prix": null, "remarques": "Arrêt formation PPL/ Début formation PM"}, {"id": 58, "date": "2023-09-14", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "LF8154", "dc": 57, "cdb": null, "prix": null, "remarques": "Reprise formation multiaxe"}, {"id": 59, "date": "2023-09-23", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "LF8154", "dc": 57, "cdb": null, "prix": null, "remarques": null}, {"id": 60, "date": "2023-10-05", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "LF8154", "dc": 60, "cdb": null, "prix": null, "remarques": null}, {"id": 61, "date": "2023-10-21", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "LF8154", "dc": 54, "cdb": null, "prix": null, "remarques": null}, {"id": 62, "date": "2023-10-28", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "LF8154", "dc": 51, "cdb": null, "prix": null, "remarques": null}, {"id": 63, "date": "2023-11-01", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "LF8154", "dc": 56, "cdb": null, "prix": null, "remarques": null}, {"id": 64, "date": "2023-11-15", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "LF8154 - LFCQ", "dc": 48, "cdb": null, "prix": null, "remarques": "TdP Graulhet"}, {"id": 65, "date": "2023-11-24", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "LF8154", "dc": 23, "cdb": null, "prix": null, "remarques": null}, {"id": 66, "date": "2023-12-04", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "LF8154", "dc": 32, "cdb": null, "prix": null, "remarques": null}, {"id": 67, "date": "2023-12-06", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LF8154 - LF8153", "dc": 53, "cdb": null, "prix": null, "remarques": "TdP La Ramière"}, {"id": 68, "date": "2023-12-11", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "LF8154", "dc": 54, "cdb": null, "prix": null, "remarques": null}, {"id": 69, "date": "2023-12-23", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "LF8154 - LFCQ", "dc": 49, "cdb": null, "prix": null, "remarques": "Tdp Graulhet"}, {"id": 70, "date": "2024-01-13", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux", "dc": 56, "cdb": null, "prix": null, "remarques": null}, {"id": 71, "date": "2024-01-20", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux", "dc": 72, "cdb": null, "prix": null, "remarques": null}, {"id": 72, "date": "2024-02-03", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux", "dc": 66, "cdb": null, "prix": null, "remarques": null}, {"id": 73, "date": "2024-02-07", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux - La Ramière -  St Martin", "dc": 61, "cdb": null, "prix": null, "remarques": "Tdp La Ramière, Saint Martin"}, {"id": 74, "date": "2024-02-17", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux", "dc": 68, "cdb": null, "prix": null, "remarques": null}, {"id": 75, "date": "2024-02-24", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux - LFCQ", "dc": 66, "cdb": null, "prix": null, "remarques": "Tdp Graulhet"}, {"id": 76, "date": "2024-02-28", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux - St Martin", "dc": 75, "cdb": null, "prix": null, "remarques": "Tdp Saint Martin"}, {"id": 77, "date": "2024-03-04", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 62, "cdb": null, "prix": null, "remarques": null}, {"id": 78, "date": "2024-03-09", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "St Lieux", "dc": 52, "cdb": null, "prix": null, "remarques": null}, {"id": 79, "date": "2024-03-18", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Claude BAUDOIN", "lieu": "St Lieux", "dc": 61, "cdb": null, "prix": null, "remarques": null}, {"id": 80, "date": "2024-03-27", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 57, "cdb": null, "prix": null, "remarques": null}, {"id": 81, "date": "2024-03-28", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 47, "cdb": null, "prix": null, "remarques": null}, {"id": 82, "date": "2024-03-30", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux", "dc": 61, "cdb": null, "prix": null, "remarques": null}, {"id": 83, "date": "2024-04-01", "categorie": "multiaxe", "modele": "A22", "immat": "84MT", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 51, "cdb": null, "prix": null, "remarques": null}, {"id": 84, "date": "2024-04-08", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Claude BAUDOIN", "lieu": "St Lieux", "dc": 68, "cdb": null, "prix": null, "remarques": null}, {"id": 85, "date": "2024-04-12", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 53, "cdb": null, "prix": null, "remarques": null}, {"id": 86, "date": "2024-04-25", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Claude BAUDOIN", "lieu": "St Lieux", "dc": 45, "cdb": null, "prix": null, "remarques": null}, {"id": 87, "date": "2024-05-06", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux", "dc": 65, "cdb": null, "prix": null, "remarques": null}, {"id": 88, "date": "2024-05-15", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 35, "cdb": null, "prix": null, "remarques": null}, {"id": 89, "date": "2024-05-18", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux - LFDB", "dc": 70, "cdb": null, "prix": null, "remarques": "Nav Montauban"}, {"id": 90, "date": "2024-05-22", "categorie": "multiaxe", "modele": "P92", "immat": "74AGZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL - Baraigne - LFMW", "dc": 85, "cdb": null, "prix": null, "remarques": "Nav Lasbordes - Baraigne - Castelnaudary (vol offert)"}, {"id": 91, "date": "2024-05-25", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux", "dc": 26, "cdb": null, "prix": null, "remarques": "Vol test avant solo"}, {"id": 92, "date": "2024-05-25", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "SOLO", "instructeur": null, "lieu": "St Lieux", "dc": null, "cdb": 22, "prix": null, "remarques": "Lâcher solo tdp Saint lieux"}, {"id": 93, "date": "2024-06-01", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux", "dc": 22, "cdb": null, "prix": null, "remarques": "Vol test avant solo"}, {"id": 94, "date": "2024-06-01", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "SOLO", "instructeur": null, "lieu": "St Lieux", "dc": null, "cdb": 41, "prix": null, "remarques": "Solo Local Lavaur"}, {"id": 95, "date": "2024-06-07", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux - La Ramière", "dc": 30, "cdb": null, "prix": null, "remarques": "Vol test La Ramière avant solo"}, {"id": 96, "date": "2024-06-07", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "SOLO", "instructeur": null, "lieu": "St Lieux - La Ramière", "dc": null, "cdb": 35, "prix": null, "remarques": "Solo tdp La Ramière"}, {"id": 97, "date": "2024-06-12", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 54, "cdb": null, "prix": null, "remarques": null}, {"id": 98, "date": "2024-06-15", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux", "dc": 63, "cdb": null, "prix": null, "remarques": null}, {"id": 99, "date": "2024-06-17", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux - LFDG", "dc": 58, "cdb": null, "prix": null, "remarques": "Tdp Gaillac"}, {"id": 100, "date": "2024-06-19", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux - LFCQ", "dc": 63, "cdb": null, "prix": null, "remarques": "Déroutement Graulhet"}, {"id": 101, "date": "2024-06-26", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux", "dc": 15, "cdb": null, "prix": null, "remarques": "Tdp 31"}, {"id": 102, "date": "2024-06-26", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "SOLO", "instructeur": null, "lieu": "St Lieux", "dc": null, "cdb": 24, "prix": null, "remarques": "Solo local Buzet + tdp 13"}, {"id": 103, "date": "2024-07-01", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Claude BAUDOIN", "lieu": "St Lieux", "dc": 19, "cdb": null, "prix": null, "remarques": "TdP31 vent de travers 45° 15-20Kt"}, {"id": 104, "date": "2024-07-09", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Claude BAUDOIN", "lieu": "St Lieux", "dc": 55, "cdb": null, "prix": null, "remarques": "Obtention brevet multiaxe"}, {"id": 105, "date": "2024-07-10", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux - Monclar - St Martin", "dc": 75, "cdb": null, "prix": null, "remarques": "Vol Monclar / Saint Martin"}, {"id": 106, "date": "2024-07-13", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "CDB", "instructeur": null, "lieu": "St Lieux - Baraigne", "dc": null, "cdb": 75, "prix": null, "remarques": null}, {"id": 107, "date": "2014-07-20", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "CDB", "instructeur": null, "lieu": "St Lieux - Pommevic", "dc": null, "cdb": 90, "prix": null, "remarques": null}, {"id": 108, "date": "2024-07-24", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "CDB", "instructeur": null, "lieu": "St Lieux", "dc": null, "cdb": 26, "prix": null, "remarques": "Tdp 31 rafaleux"}, {"id": 109, "date": "2024-07-25", "categorie": "multiaxe", "modele": "SG", "immat": "81RC", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 41, "cdb": null, "prix": null, "remarques": "Découverte SG Club"}, {"id": 110, "date": "2024-08-11", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "CDB", "instructeur": null, "lieu": "St Lieux - Villemur", "dc": null, "cdb": 50, "prix": null, "remarques": "Amorce parachutale en finale 15"}, {"id": 111, "date": "2024-08-17", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "CDB", "instructeur": null, "lieu": "St Lieux - Castelvert", "dc": null, "cdb": 63, "prix": null, "remarques": "2 RDG Castelvert piste 28"}, {"id": 112, "date": "2024-08-20", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Claude BAUDOIN", "lieu": "St Lieux - Castelvert", "dc": 70, "cdb": null, "prix": null, "remarques": "4 TdP Castelvert piste 10"}, {"id": 113, "date": "2024-09-07", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel MARTY", "lieu": "St Lieux - LFDG", "dc": 57, "cdb": null, "prix": null, "remarques": "Vol radio auto info Gaillac"}, {"id": 114, "date": "2024-09-18", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Michel Marty", "lieu": "St Lieux - LFCI", "dc": 66, "cdb": null, "prix": null, "remarques": "Vol radio AFIS Albi"}, {"id": 115, "date": "2014-09-20", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "EP", "instructeur": "Didier DARCY", "lieu": "St Lieux", "dc": 42, "cdb": 6, "prix": null, "remarques": "Tdp 13 pluie + solo"}, {"id": 116, "date": "2024-09-29", "categorie": "multiaxe", "modele": "A22", "immat": "81QK", "fonction": "CDB", "instructeur": null, "lieu": "St Lieux", "dc": null, "cdb": 87, "prix": null, "remarques": "Pic de Nore (attention attéro vent arrière et remise de gaz tardive)"}, {"id": 117, "date": "2024-11-11", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL", "dc": 42, "cdb": null, "prix": 58.1, "remarques": "Découverte Tétras"}, {"id": 118, "date": "2024-11-30", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL - LFMW", "dc": 90, "cdb": null, "prix": 124.5, "remarques": "4 TdP LFCL + 15ULM"}, {"id": 119, "date": "2024-12-05", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL", "dc": 60, "cdb": null, "prix": 83, "remarques": "5 TdP 33ULM"}, {"id": 120, "date": "2024-12-17", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL - St Lieux - St Martin", "dc": 78, "cdb": null, "prix": 107.9, "remarques": "5 Tdp + 15ULM"}, {"id": 121, "date": "2024-12-28", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL - St lieux", "dc": 66, "cdb": null, "prix": 91.3, "remarques": "PTS,  panne en tdp, 4 ATT"}, {"id": 122, "date": "2025-01-07", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL-LFMW", "dc": 84, "cdb": null, "prix": 116.2, "remarques": "TdP basse hauteur + Panne campagne + 15ULM"}, {"id": 123, "date": "2025-01-18", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL - St lieux", "dc": 54, "cdb": null, "prix": 74.7, "remarques": null}, {"id": 124, "date": "2025-01-18", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CBD", "instructeur": null, "lieu": "St Lieux", "dc": null, "cdb": 18, "prix": 24.9, "remarques": "Lâcher solo Saint lieux"}, {"id": 125, "date": "2025-01-27", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL", "dc": 24, "cdb": null, "prix": 33.2, "remarques": "3 tdp LFCL"}, {"id": 126, "date": "2025-01-27", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 24, "prix": 33.2, "remarques": "Laché LFCL 3 tdp"}, {"id": 127, "date": "2025-02-03", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - Baraigne", "dc": null, "cdb": 66, "prix": 91.3, "remarques": "Auto-information"}, {"id": 128, "date": "2025-02-08", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LCFL - Baraigne", "dc": 84, "cdb": null, "prix": 116.2, "remarques": "Obtention emport PAX et radio"}, {"id": 129, "date": "2025-02-11", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - St Lieux", "dc": null, "cdb": 60, "prix": 83, "remarques": null}, {"id": 130, "date": "2025-02-15", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - St lieux", "dc": null, "cdb": 60, "prix": 83, "remarques": "1er vol avec Camille"}, {"id": 131, "date": "2023-02-23", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL-Regat", "dc": null, "cdb": 96, "prix": 132.8, "remarques": "A/R Regat, attention bosse sur piste, arbre en courte finale 10"}, {"id": 132, "date": "2025-03-01", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - LFDG", "dc": null, "cdb": 84, "prix": 116.2, "remarques": "A/R Gaillac, aerologie turbulente, vomissements Camille"}, {"id": 133, "date": "2025-03-10", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 42, "prix": 58.1, "remarques": "Tdp 15 ULM"}, {"id": 134, "date": "2025-03-16", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - La Ramière", "dc": null, "cdb": 90, "prix": 124.5, "remarques": "TdP La Ramière"}, {"id": 135, "date": "2025-04-01", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 24, "prix": 33.2, "remarques": "Tdp 15 ULM 15Kt20"}, {"id": 136, "date": "2025-04-05", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LCFL - LFDG - St Lieux", "dc": null, "cdb": 84, "prix": 116.2, "remarques": "2 Touch Gaillac + 1 complet St Lieux"}, {"id": 137, "date": "2025-04-08", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - LFBR", "dc": null, "cdb": 78, "prix": 107.9, "remarques": "2 complets LFBR 12ULM"}, {"id": 138, "date": "2025-04-12", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LCFL", "dc": null, "cdb": 36, "prix": 49.8, "remarques": "4 tdp 15ULM 18G21"}, {"id": 139, "date": "2025-04-18", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - LFIR - LFCQ", "dc": null, "cdb": 108, "prix": 149.4, "remarques": "Revel, Graulhet"}, {"id": 140, "date": "2025-04-25", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - LFIM", "dc": null, "cdb": 120, "prix": 166, "remarques": "AR Saint Gaudens (Ne pas appeler Lasbordes pour du SIV)"}, {"id": 141, "date": "2025-05-08", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - LFIR - St Lieux", "dc": null, "cdb": 84, "prix": 116.2, "remarques": "LFCL - LFIR - St Lieux"}, {"id": 142, "date": "2025-05-09", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL - LFIR", "dc": 84, "cdb": null, "prix": 116.2, "remarques": "Vent de travers, rafaleux, vol compliqué…"}, {"id": 143, "date": "2025-05-18", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 72, "prix": 99.6, "remarques": "Local, mania, 2 beaux ATT"}, {"id": 144, "date": "2025-05-26", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Jacques VERRIERE", "lieu": "LFCL", "dc": 46, "cdb": null, "prix": 98.13, "remarques": "Début de formation PPL(A)"}, {"id": 145, "date": "2025-06-06", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Jacques VERRIERE", "lieu": "LFCL - LFCQ", "dc": 78, "cdb": null, "prix": 166.4, "remarques": "Tdp + PTE Graulhet"}, {"id": 146, "date": "2025-06-09", "categorie": "avion", "modele": "CAP 10", "immat": "F-BXHU", "fonction": "EP", "instructeur": "Alain MATHIAS", "lieu": "LFCL", "dc": 36, "cdb": null, "prix": 174, "remarques": "MEG"}, {"id": 147, "date": "2025-06-10", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Jacques VERRIERE", "lieu": "LFCL - LFDG", "dc": 69, "cdb": null, "prix": 147.2, "remarques": "Tdp + PTE Gaillac"}, {"id": 148, "date": "2025-06-16", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Jacques VERRIERE", "lieu": "LFCL", "dc": 44, "cdb": null, "prix": 93.87, "remarques": "Tdp"}, {"id": 149, "date": "2025-07-19", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL", "dc": 84, "cdb": null, "prix": 116.2, "remarques": "Vol reprise Tétras"}, {"id": 150, "date": "2025-08-06", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 36, "prix": 49.8, "remarques": "Tdp 33 (reprise solo)"}, {"id": 151, "date": "2025-08-09", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 36, "prix": 49.8, "remarques": "Tdp 33"}, {"id": 152, "date": "2025-08-10", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 42, "prix": 58.1, "remarques": "Tdp 33"}, {"id": 153, "date": "2025-08-16", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - LFMW", "dc": null, "cdb": 66, "prix": 91.3, "remarques": "Tdp 29 + basse hauteur"}, {"id": 154, "date": "2025-08-18", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL - St lieux", "dc": null, "cdb": 66, "prix": 91.3, "remarques": "Vol avec Charlotte // Plafond 2500 // Visi très moyenne"}, {"id": 155, "date": "2025-08-19", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL", "dc": 22, "cdb": null, "prix": 46.93, "remarques": "Nouvel instructeur // Tdp // Orage"}, {"id": 156, "date": "2025-08-26", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL", "dc": 64, "cdb": null, "prix": 136.53, "remarques": "Mania"}, {"id": 157, "date": "2025-08-30", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL - LFDH", "dc": 100, "cdb": null, "prix": 213.33, "remarques": "Nav LFDH - Transit Blagnac"}, {"id": 158, "date": "2025-09-05", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 54, "prix": 74.7, "remarques": "Tdp avec Camille + local Caraman"}, {"id": 159, "date": "2025-09-06", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL - LFDG", "dc": 74, "cdb": null, "prix": 166.4, "remarques": "Tdp Gaillac / Tdp LFCL 15 aerologie turbulente 130 15G25"}, {"id": 160, "date": "2025-09-11", "categorie": "multiaxe", "modele": "TETRAS", "immat": "31VZ", "fonction": "CDB", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 30, "prix": 41.5, "remarques": "TdP LFCL 33 Vent de travers 270 8kt avec Camille"}, {"id": 161, "date": "2025-09-16", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL LFMW", "dc": 70, "cdb": null, "prix": 149.33, "remarques": "Tdp LFMW / Visi très réduite / Erreurs et imprécisions"}, {"id": 162, "date": "2025-09-20", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL - LFBR", "dc": 97, "cdb": null, "prix": 206.93, "remarques": "TDP LFBR / Transit EN1 - SA1 / aerologie turbulante 120 15G27"}, {"id": 163, "date": "2025-09-23", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL", "dc": 78, "cdb": null, "prix": 166.4, "remarques": "TDP LFCL33 + 3 PTU / 2 RDG"}, {"id": 164, "date": "2025-10-01", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Alain MATHIAS", "lieu": "LFCL", "dc": 51, "cdb": null, "prix": 108, "remarques": "Vol avec Alain avant Lâché / 2 tdp + 1 PTU"}, {"id": 165, "date": "2025-10-11", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL", "dc": 42, "cdb": null, "prix": 89.6, "remarques": "3 TDP LFCL"}, {"id": 166, "date": "2015-10-11", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "P", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 24, "prix": 51.2, "remarques": "Lâché Solo LFCL"}, {"id": 167, "date": "2025-10-19", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL - LFCC - LFCX - LFCL", "dc": 116, "cdb": null, "prix": 247.47, "remarques": "Nav Cahors, Castelsarrasin, transit Blagnac NA1, PTU 15, Vent 130°/20Kt"}, {"id": 168, "date": "2025-10-25", "categorie": "ULM", "modele": "SG", "immat": "85AUU", "fonction": "EP", "instructeur": "Frédéric LAFAURY", "lieu": "LFCL", "dc": 66, "cdb": null, "prix": 107.8, "remarques": "Découverte SG Club"}, {"id": 169, "date": "2025-11-01", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Dominique DICIANNI", "lieu": "LFCL.- LFDJ", "dc": 85, "cdb": null, "prix": 181.33, "remarques": "Nav LFDJ (basse hauteur), IVV, VSV"}, {"id": 170, "date": "2025-11-09", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "P", "instructeur": null, "lieu": "LCFL", "dc": null, "cdb": 60, "prix": 83, "remarques": "AR St Lieux avec Camille"}, {"id": 171, "date": "2025-11-15", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "P", "instructeur": null, "lieu": "LFCL - LFMW - LFCQ", "dc": null, "cdb": 102, "prix": 141.1, "remarques": "Boucle Castelnaudary, Graulhet avec Camille 2 T&G"}, {"id": 172, "date": "2025-12-07", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Arnaud FONTEILLE", "lieu": "Baraigne", "dc": 90, "cdb": null, "prix": 125.5, "remarques": "Panne campagne, vent travers et piste déclive, vol basse altitude"}, {"id": 173, "date": "2025-12-12", "categorie": "avion", "modele": "P2002", "immat": "F-HJAT", "fonction": "EP", "instructeur": "Alain MATHIAS", "lieu": "LFCL", "dc": 59, "cdb": null, "prix": 125, "remarques": "Tdp 15 vent rafaleux 22kt"}, {"id": 174, "date": "2025-12-13", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "P", "instructeur": null, "lieu": "LCFL - Baraigne", "dc": null, "cdb": 48, "prix": 66.4, "remarques": "Vol Lac de la Ganguise (BB)"}, {"id": 175, "date": "2026-12-19", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "EP", "instructeur": "Alain MATHIAS", "lieu": "LFCL", "dc": 21, "cdb": null, "prix": 44.8, "remarques": "Tpd + exercice accélération arrêt"}, {"id": 176, "date": "2015-12-19", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "P", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 40, "prix": 85.33, "remarques": "3 tdp solo piste 33"}, {"id": 177, "date": "2026-01-04", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "P", "instructeur": null, "lieu": "LFCL - LFCX - St lieux", "dc": null, "cdb": 120, "prix": 166, "remarques": "Nav Castelsarrasin Saint Lieux (BB)"}, {"id": 178, "date": "2026-01-11", "categorie": "avion", "modele": "P2002", "immat": "F-HZAM", "fonction": "P", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 51, "prix": 108, "remarques": "Vol local solo"}, {"id": 179, "date": "2026-04-05", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Alain MATHIAS", "lieu": "LFCL - St lieux", "dc": 66, "cdb": null, "prix": 91.3, "remarques": "Remise en vol, panne en campagne"}, {"id": 180, "date": "2026-04-18", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "EP", "instructeur": "Alain MATHIAS", "lieu": "LFCL - Baraigne - LFMW", "dc": 90, "cdb": null, "prix": 124.5, "remarques": "VEA reussi"}, {"id": 181, "date": "2026-04-20", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "P", "instructeur": null, "lieu": "Tdp  LFCL", "dc": null, "cdb": 42, "prix": 58.1, "remarques": "Tdp 33 avec Camille // Exercice glissage"}, {"id": 182, "date": "2026-04-25", "categorie": "ULM", "modele": "P92", "immat": "74AGZ", "fonction": "EP", "instructeur": "Gérard HALLUIN", "lieu": "LFCL", "dc": 56, "cdb": null, "prix": 77.47, "remarques": "Découverte P92, mania, panne en campagne, tdp 33, glissade"}, {"id": 183, "date": "2026-04-27", "categorie": "ULM", "modele": "TETRAS", "immat": "31VZ", "fonction": "P", "instructeur": null, "lieu": "LFCL", "dc": null, "cdb": 48, "prix": 66.4, "remarques": "Tdp 33"}, {"id": 184, "date": "2026-05-16", "categorie": "ULM", "modele": "P92", "immat": "74AGZ", "fonction": "EP", "instructeur": "Gérard HALLUIN", "lieu": "LCFL", "dc": 54, "cdb": null, "prix": 74.7, "remarques": "Tdp 33 Vent travers turbulent 250 16kt"}, {"id": 185, "date": "2026-05-21", "categorie": "ULM", "modele": "P92", "immat": "74AGZ", "fonction": "EP", "instructeur": "Gérard HALLUIN", "lieu": "Inst", "dc": 84, "cdb": null, "prix": 116.2, "remarques": "Tdp St Lieux, La Ramière"}, {"id": 186, "date": "2026-06-13", "categorie": "ULM", "modele": "P92", "immat": "74AGZ", "fonction": "P", "instructeur": null, "lieu": "LFCL - LFDG", "dc": null, "cdb": 71, "prix": 101.77, "remarques": "Tdp Gaillac // Vent plein travers droit 10-15kt // Surpris +++"}, {"id": 187, "date": "2026-08-08", "categorie": "ULM", "modele": "TETRAS", "immat": "31AJS", "fonction": "EP", "instructeur": "Gérard HALLUIN", "lieu": "LFCL - Baraigne", "dc": 72, "cdb": null, "prix": 117.6, "remarques": "Découverte nouveau Tétras, Tdp Baraigne"}, {"id": 188, "date": "2026-08-15", "categorie": "ULM", "modele": "TETRAS", "immat": "31AJS", "fonction": "EP", "instructeur": "Gérard HALLUIN", "lieu": "Nav", "dc": 73, "cdb": null, "prix": 119.23, "remarques": "NAV Muret - 3 Tdp vent calme"}]</script>
+<script>
+/* ============================================================
+   Carnet de vol — logique applicative
+   ============================================================ */
+
+const STORAGE_KEY = 'carnet-vol-flights';
+const SEED = JSON.parse(document.getElementById('seed-data').textContent);
+
+let FLIGHTS = [];
+let editingId = null;
+let charts = { years: null, cumul: null, categorie: null, fonction: null };
+
+const CAT_COLORS = {
+  'multiaxe': { fill: '#C4DEEC', ink: '#274a63', tag: 'tag-multiaxe' },
+  'ULM':      { fill: '#C7DEC4', ink: '#2f5230', tag: 'tag-ulm' },
+  'avion':    { fill: '#DAD3EA', ink: '#493a6b', tag: 'tag-avion' },
+};
+function catStyle(cat){
+  return CAT_COLORS[cat] || { fill:'#F2DCC7', ink:'#7a4a1e', tag:'tag-autre' };
+}
+
+/* ---------------- Persistence ---------------- */
+
+async function loadFlights(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if (res && res.value){
+      FLIGHTS = JSON.parse(res.value);
+      return;
+    }
+  }catch(e){ /* pas encore de donnée stockée */ }
+  FLIGHTS = SEED.slice();
+  await persist();
+}
+
+async function persist(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(FLIGHTS), false);
+  }catch(e){
+    console.error('Erreur de sauvegarde', e);
+    showToast("La sauvegarde a échoué — vos dernières modifications ne sont peut-être pas conservées.");
+  }
+}
+
+/* ---------------- Helpers ---------------- */
+
+function minToLabel(min){
+  if (min === null || min === undefined) return '—';
+  const h = Math.floor(min/60), m = Math.round(min%60);
+  return h + 'h' + String(m).padStart(2,'0');
+}
+function totalMin(f){ return (f.dc||0) + (f.cdb||0); }
+function fmtDate(iso){
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+}
+function fmtEuro(v){
+  if (v === null || v === undefined) return '—';
+  return v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' €';
+}
+function uniqueValues(key){
+  return [...new Set(FLIGHTS.map(f => f[key]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+}
+function nextId(){
+  return FLIGHTS.reduce((m,f)=>Math.max(m,f.id||0),0) + 1;
+}
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------------- Aggregation ---------------- */
+
+function yearStats(){
+  const map = {};
+  FLIGHTS.forEach(f=>{
+    const y = f.date.slice(0,4);
+    if (!map[y]) map[y] = { dc:0, cdb:0, count:0 };
+    map[y].dc += (f.dc||0);
+    map[y].cdb += (f.cdb||0);
+    map[y].count += 1;
+  });
+  const years = Object.keys(map).map(Number);
+  const minY = Math.min(...years), maxY = Math.max(...years);
+  const full = [];
+  for (let y = minY; y <= maxY; y++){
+    const k = String(y);
+    full.push({ year:k, dc: map[k]?map[k].dc:0, cdb: map[k]?map[k].cdb:0, count: map[k]?map[k].count:0 });
+  }
+  return full;
+}
+
+/* ---------------- Rendering: stats ---------------- */
+
+function renderStats(){
+  const totalMinutes = FLIGHTS.reduce((s,f)=>s+totalMin(f),0);
+  const totalHours = totalMinutes/60;
+  const years = yearStats().filter(y=>y.count>0);
+  const firstYear = years.length ? years[0].year : '—';
+  const lastFlight = FLIGHTS.slice().sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const terrains = new Set();
+  FLIGHTS.forEach(f=>{ if(f.lieu) f.lieu.split('-').forEach(t=>terrains.add(t.trim())); });
+
+  document.getElementById('heroTotalHours').innerHTML = totalHours.toFixed(1) + '<span>h</span>';
+  document.getElementById('heroTotalSub').textContent = FLIGHTS.length + ' vols enregistrés depuis ' + firstYear;
+
+  const stats = [
+    { v: totalHours.toFixed(1) + ' h', l: 'Heures de vol totales', c:'var(--sky-deep)' },
+    { v: FLIGHTS.length, l: 'Vols au carnet', c:'var(--sage-deep)' },
+    { v: terrains.size, l: 'Terrains fréquentés', c:'var(--lavender-deep)' },
+    { v: lastFlight ? fmtDate(lastFlight.date) : '—', l: 'Dernier vol enregistré', c:'var(--peach-deep)' },
+  ];
+  document.getElementById('statsRow').innerHTML = stats.map(s => `
+    <div class="stat-card" style="--card-accent:${s.c}">
+      <div class="v">${s.v}</div>
+      <div class="l">${s.l}</div>
+    </div>
+  `).join('');
+}
+
+/* ---------------- Rendering: horizon signature ---------------- */
+
+function renderHorizon(){
+  const ys = yearStats();
+  const svg = document.getElementById('horizonSvg');
+  const W = 1000, H = 180, padL = 34, padR = 20, baseY = 120;
+  const maxH = Math.max(1, ...ys.map(y=>(y.dc+y.cdb)/60));
+  const n = ys.length;
+  const step = n > 1 ? (W - padL - padR) / (n - 1) : 0;
+  const scaleY = 78 / maxH;
+
+  const pts = ys.map((y,i)=>{
+    const hrs = (y.dc+y.cdb)/60;
+    const x = padL + step*i;
+    const yy = baseY - hrs*scaleY;
+    return { x, y: yy, hrs, year: y.year, active: y.count>0 };
+  });
+
+  let path = 'M ' + pts.map(p=>`${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' L ');
+  let areaPath = path + ` L ${pts[pts.length-1].x.toFixed(1)} ${baseY} L ${pts[0].x.toFixed(1)} ${baseY} Z`;
+
+  const dots = pts.map(p => `
+    <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${p.active?4:2.5}"
+      fill="${p.active?'#8FB8D6':'#C9D2D6'}" stroke="#fff" stroke-width="1.5"/>
+  `).join('');
+
+  const labels = pts.filter((p,i)=> i===0 || i===pts.length-1 || p.year % 5 === 0).map(p => `
+    <text x="${p.x.toFixed(1)}" y="${baseY+20}" font-size="11" fill="#9AA7AE"
+      font-family="IBM Plex Mono, monospace" text-anchor="middle">${p.year}</text>
+  `).join('');
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#C4DEEC" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#C4DEEC" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <line x1="${padL}" y1="${baseY}" x2="${W-padR}" y2="${baseY}" stroke="#E4E9E6" stroke-width="1.5"/>
+    <path d="${areaPath}" fill="url(#skyGrad)"/>
+    <path d="${path}" fill="none" stroke="#8FB8D6" stroke-width="2"/>
+    ${dots}
+    ${labels}
+  `;
+  document.getElementById('horizonRange').textContent = ys[0].year + ' → ' + ys[ys.length-1].year;
+}
+
+/* ---------------- Rendering: charts ---------------- */
+
+function destroyChart(key){ if (charts[key]){ charts[key].destroy(); charts[key]=null; } }
+
+function renderChartYears(){
+  const ys = yearStats();
+  destroyChart('years');
+  const ctx = document.getElementById('chartYears');
+  charts.years = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: ys.map(y=>y.year),
+      datasets:[
+        { label:'Double commande', data: ys.map(y=>+(y.dc/60).toFixed(2)), backgroundColor:'#C4DEEC', borderRadius:5, maxBarThickness:26 },
+        { label:'Solo / CdB', data: ys.map(y=>+(y.cdb/60).toFixed(2)), backgroundColor:'#93B98D', borderRadius:5, maxBarThickness:26 },
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ position:'bottom', labels:{ boxWidth:9, boxHeight:9, usePointStyle:true, pointStyle:'circle', font:{ family:'Inter', size:12 }, color:'#6E7C86' } },
+        tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y} h` } }
+      },
+      scales:{
+        x:{ stacked:true, grid:{ display:false }, ticks:{ font:{ family:'IBM Plex Mono', size:11 }, color:'#9AA7AE' } },
+        y:{ stacked:true, grid:{ color:'#EEF1EF' }, ticks:{ font:{ family:'IBM Plex Mono', size:11 }, color:'#9AA7AE' }, title:{ display:true, text:'heures', color:'#9AA7AE', font:{ size:11 } } }
+      }
+    }
+  });
+}
+
+function renderChartCumul(){
+  const ys = yearStats();
+  let running = 0;
+  const cumul = ys.map(y => { running += (y.dc+y.cdb)/60; return +running.toFixed(1); });
+  destroyChart('cumul');
+  const ctx = document.getElementById('chartCumul');
+  charts.cumul = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: ys.map(y=>y.year),
+      datasets:[{
+        label:'Heures cumulées',
+        data: cumul,
+        borderColor:'#AB9BCB',
+        backgroundColor:'rgba(171,155,203,0.14)',
+        fill:true,
+        tension:0.35,
+        pointRadius:3,
+        pointBackgroundColor:'#AB9BCB',
+        borderWidth:2.5
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: c => `${c.parsed.y} h cumulées` } }
+      },
+      scales:{
+        x:{ grid:{ display:false }, ticks:{ font:{ family:'IBM Plex Mono', size:11 }, color:'#9AA7AE' } },
+        y:{ grid:{ color:'#EEF1EF' }, ticks:{ font:{ family:'IBM Plex Mono', size:11 }, color:'#9AA7AE' }, title:{ display:true, text:'heures totales', color:'#9AA7AE', font:{ size:11 } } }
+      }
+    }
+  });
+}
+
+function renderDonut(key, groupField, canvasId, legendId, palette){
+  const counts = {};
+  FLIGHTS.forEach(f=>{
+    const v = f[groupField] || 'Non renseigné';
+    counts[v] = (counts[v]||0) + 1;
+  });
+  const labels = Object.keys(counts);
+  const values = labels.map(l=>counts[l]);
+  const colors = labels.map((l,i)=> palette[i % palette.length]);
+
+  destroyChart(key);
+  const ctx = document.getElementById(canvasId);
+  charts[key] = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data: values, backgroundColor: colors, borderColor:'#fff', borderWidth:2 }] },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      cutout:'68%',
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: c => `${c.label}: ${c.parsed} vols` } } }
+    }
+  });
+
+  const total = values.reduce((a,b)=>a+b,0);
+  document.getElementById(legendId).innerHTML = labels.map((l,i)=>`
+    <div class="row">
+      <span class="lbl"><span class="swatch" style="background:${colors[i]}"></span>${l}</span>
+      <span class="val">${counts[l]} · ${Math.round(counts[l]/total*100)}%</span>
+    </div>
+  `).join('');
+}
+
+function renderAllCharts(){
+  renderChartYears();
+  renderChartCumul();
+  renderDonut('categorie','categorie','chartCategorie','categorieLegend', ['#C4DEEC','#C7DEC4','#DAD3EA','#F2DCC7','#E7C6C6']);
+  renderDonut('fonction','fonction','chartFonction','fonctionLegend', ['#93B98D','#8FB8D6','#AB9BCB','#DDA875','#D08787']);
+}
+
+/* ---------------- Rendering: table ---------------- */
+
+function currentFilters(){
+  return {
+    year: document.getElementById('filterYear').value,
+    categorie: document.getElementById('filterCategorie').value,
+    search: document.getElementById('filterSearch').value.trim().toLowerCase(),
+  };
+}
+
+function filteredFlights(){
+  const { year, categorie, search } = currentFilters();
+  return FLIGHTS
+    .filter(f => !year || f.date.slice(0,4) === year)
+    .filter(f => !categorie || f.categorie === categorie)
+    .filter(f => {
+      if (!search) return true;
+      const hay = [f.lieu, f.instructeur, f.remarques, f.modele, f.immat].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(search);
+    })
+    .sort((a,b)=> b.date.localeCompare(a.date) || b.id - a.id);
+}
+
+function renderTable(){
+  const rows = filteredFlights();
+  document.getElementById('filterCount').textContent = rows.length + ' vol' + (rows.length>1?'s':'');
+  const body = document.getElementById('flightsBody');
+
+  if (!rows.length){
+    body.innerHTML = `<tr class="empty-row"><td colspan="13">Aucun vol ne correspond à ces filtres. Essayez d'élargir la recherche, ou ajoutez un nouveau vol.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(f=>{
+    const cs = catStyle(f.categorie);
+    return `
+    <tr data-id="${f.id}">
+      <td>${fmtDate(f.date)}</td>
+      <td><span class="tag ${cs.tag}">${f.categorie||'—'}</span></td>
+      <td>${f.modele||'<span class="muted">—</span>'}</td>
+      <td class="fn">${f.immat||'—'}</td>
+      <td class="fn">${f.fonction||'—'}</td>
+      <td>${f.instructeur||'<span class="muted">—</span>'}</td>
+      <td>${f.lieu||'<span class="muted">—</span>'}</td>
+      <td class="num">${minToLabel(f.dc)}</td>
+      <td class="num">${minToLabel(f.cdb)}</td>
+      <td class="num"><strong>${minToLabel(totalMin(f))}</strong></td>
+      <td class="num">${fmtEuro(f.prix)}</td>
+      <td class="remarque-cell">${f.remarques||''}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" title="Modifier" onclick="startEdit(${f.id})">✎</button>
+          <button class="icon-btn" title="Supprimer" onclick="deleteFlight(${f.id})">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---------------- Filters setup ---------------- */
+
+function populateFilters(){
+  const yearSel = document.getElementById('filterYear');
+  const currentY = yearSel.value;
+  const years = [...new Set(FLIGHTS.map(f=>f.date.slice(0,4)))].sort((a,b)=>b.localeCompare(a));
+  yearSel.innerHTML = '<option value="">Toutes les années</option>' + years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  yearSel.value = currentY;
+
+  const catSel = document.getElementById('filterCategorie');
+  const currentC = catSel.value;
+  const cats = uniqueValues('categorie');
+  catSel.innerHTML = '<option value="">Toutes catégories</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  catSel.value = currentC;
+
+  document.getElementById('dl_categorie').innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+  document.getElementById('dl_modele').innerHTML = uniqueValues('modele').map(c=>`<option value="${c}">`).join('');
+  document.getElementById('dl_fonction').innerHTML = uniqueValues('fonction').map(c=>`<option value="${c}">`).join('');
+  document.getElementById('dl_instructeur').innerHTML = uniqueValues('instructeur').map(c=>`<option value="${c}">`).join('');
+  document.getElementById('dl_lieu').innerHTML = uniqueValues('lieu').map(c=>`<option value="${c}">`).join('');
+}
+
+/* ---------------- Full re-render ---------------- */
+
+function renderAll(){
+  renderStats();
+  renderHorizon();
+  renderAllCharts();
+  populateFilters();
+  renderTable();
+}
+
+/* ---------------- Form: add / edit ---------------- */
+
+const formPanel = document.getElementById('formPanel');
+const flightForm = document.getElementById('flightForm');
+
+function openForm(){
+  formPanel.classList.add('open');
+  formPanel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function closeForm(){
+  formPanel.classList.remove('open');
+  flightForm.reset();
+  editingId = null;
+  document.getElementById('formTitle').textContent = 'Ajouter un vol';
+  document.getElementById('submitFormBtn').textContent = 'Enregistrer le vol';
+  setTempsType('dc');
+}
+
+function setTempsType(val){
+  document.querySelectorAll('#tempsType .radio-opt').forEach(el=>{
+    const active = el.dataset.val === val;
+    el.classList.toggle('active', active);
+    el.querySelector('input').checked = active;
+  });
+}
+
+document.getElementById('tempsType').addEventListener('click', (e)=>{
+  const opt = e.target.closest('.radio-opt');
+  if (opt) setTempsType(opt.dataset.val);
+});
+
+document.getElementById('toggleFormBtn').addEventListener('click', ()=>{
+  if (formPanel.classList.contains('open') && editingId===null){ closeForm(); }
+  else { closeForm(); openForm(); }
+});
+document.getElementById('cancelFormBtn').addEventListener('click', closeForm);
+
+window.startEdit = function(id){
+  const f = FLIGHTS.find(x=>x.id===id);
+  if (!f) return;
+  editingId = id;
+  document.getElementById('formTitle').textContent = 'Modifier ce vol';
+  document.getElementById('submitFormBtn').textContent = 'Mettre à jour';
+  document.getElementById('f_date').value = f.date;
+  document.getElementById('f_categorie').value = f.categorie || '';
+  document.getElementById('f_modele').value = f.modele || '';
+  document.getElementById('f_immat').value = f.immat || '';
+  document.getElementById('f_fonction').value = f.fonction || '';
+  document.getElementById('f_instructeur').value = f.instructeur || '';
+  document.getElementById('f_lieu').value = f.lieu || '';
+  document.getElementById('f_prix').value = f.prix ?? '';
+  document.getElementById('f_remarques').value = f.remarques || '';
+
+  const isCdb = (f.cdb||0) > 0 && !(f.dc||0);
+  setTempsType(isCdb ? 'cdb' : 'dc');
+  const mins = totalMin(f);
+  document.getElementById('f_heures').value = Math.floor(mins/60);
+  document.getElementById('f_minutes').value = Math.round(mins%60);
+
+  openForm();
+};
+
+window.deleteFlight = async function(id){
+  const f = FLIGHTS.find(x=>x.id===id);
+  if (!f) return;
+  if (!confirm(`Supprimer le vol du ${fmtDate(f.date)} ?`)) return;
+  FLIGHTS = FLIGHTS.filter(x=>x.id!==id);
+  await persist();
+  renderAll();
+  showToast('Vol supprimé.');
+};
+
+flightForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const date = document.getElementById('f_date').value;
+  const categorie = document.getElementById('f_categorie').value.trim();
+  if (!date || !categorie){ showToast('Merci de renseigner au moins la date et la catégorie.'); return; }
+
+  const heures = parseInt(document.getElementById('f_heures').value || '0', 10);
+  const minutes = parseInt(document.getElementById('f_minutes').value || '0', 10);
+  const totalMinutes = Math.max(0, heures*60 + minutes);
+  const tempsType = document.querySelector('#tempsType .radio-opt.active').dataset.val;
+
+  const prixVal = document.getElementById('f_prix').value;
+
+  const record = {
+    id: editingId ?? nextId(),
+    date,
+    categorie,
+    modele: document.getElementById('f_modele').value.trim() || null,
+    immat: document.getElementById('f_immat').value.trim() || null,
+    fonction: document.getElementById('f_fonction').value.trim() || null,
+    instructeur: document.getElementById('f_instructeur').value.trim() || null,
+    lieu: document.getElementById('f_lieu').value.trim() || null,
+    dc: tempsType === 'dc' ? totalMinutes : null,
+    cdb: tempsType === 'cdb' ? totalMinutes : null,
+    prix: prixVal ? parseFloat(prixVal) : null,
+    remarques: document.getElementById('f_remarques').value.trim() || null,
+  };
+
+  if (editingId){
+    FLIGHTS = FLIGHTS.map(f => f.id===editingId ? record : f);
+  } else {
+    FLIGHTS.push(record);
+  }
+  await persist();
+  closeForm();
+  renderAll();
+  showToast(editingId ? 'Vol mis à jour.' : 'Vol ajouté au carnet.');
+});
+
+/* ---------------- Filters events ---------------- */
+
+['filterYear','filterCategorie'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', renderTable);
+});
+document.getElementById('filterSearch').addEventListener('input', renderTable);
+
+/* ---------------- Init ---------------- */
+
+(async function init(){
+  await loadFlights();
+  renderAll();
+})();
+
+</script>
+</body>
+</html>
